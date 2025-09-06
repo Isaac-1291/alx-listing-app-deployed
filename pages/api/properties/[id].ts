@@ -1,97 +1,47 @@
-// pages/property/[id].tsx
-"use client"
+// pages/api/properties/[id].ts
+import type { NextApiRequest, NextApiResponse } from "next";
 
-import { useRouter } from "next/router"
-import axios from "axios"
-import { useState, useEffect } from "react"
+const properties = [
+  {
+    id: "1",
+    title: "Modern Apartment in Accra",
+    location: "Accra, Ghana",
+    price: 120,
+    imageUrl: "/images/property1.jpg",
+    rating: 4.8,
+    description: "A cozy modern apartment in the heart of Accra."
+  },
+  {
+    id: "2",
+    title: "Beachfront Villa",
+    location: "Cape Coast, Ghana",
+    price: 250,
+    imageUrl: "/images/property2.jpg",
+    rating: 4.9,
+    description: "Luxury villa right on the beach."
+  },
+  {
+    id: "3",
+    title: "Cozy Cabin in the Mountains",
+    location: "Aburi, Ghana",
+    price: 90,
+    imageUrl: "/images/property3.jpg",
+    rating: 4.6,
+    description: "Peaceful cabin surrounded by nature."
+  }
+];
 
-interface Property {
-  id: string
-  title: string
-  location: string
-  price: number
-  imageUrl: string
-  rating: number
-  description: string
-}
-
-interface Review {
-  id: string
-  comment: string
-  author: string
-  rating: number
-}
-
-const PropertyDetailPage = () => {
-  const router = useRouter()
-  const { id } = router.query
-
-  const [property, setProperty] = useState<Property | null>(null)
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!id) return
-
-      try {
-        // Fetch property details
-        const propResponse = await axios.get(`/api/properties/${id}`)
-        setProperty(propResponse.data)
-
-        // Fetch property reviews
-        const revResponse = await axios.get(`/api/properties/${id}/reviews`)
-        setReviews(revResponse.data)
-      } catch (error) {
-        console.error("Error fetching property or reviews:", error)
-      } finally {
-        setLoading(false)
-      }
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { id } = req.query;
+  const property = properties.find(p => p.id === id);
+  
+  if (req.method === "GET") {
+    if (!property) {
+      return res.status(404).json({ error: "Property not found" });
     }
-
-    fetchData()
-  }, [id])
-
-  if (loading) {
-    return <p className="text-center py-10">Loading...</p>
+    return res.status(200).json(property);
   }
 
-  if (!property) {
-    return <p className="text-center py-10">Property not found</p>
-  }
-
-  return (
-    <div className="max-w-4xl mx-auto py-12 px-4">
-      <img
-        src={property.imageUrl}
-        alt={property.title}
-        className="w-full h-96 object-cover rounded-xl shadow-md"
-      />
-      <h1 className="text-3xl font-bold mt-6">{property.title}</h1>
-      <p className="text-gray-600">{property.location}</p>
-      <p className="text-lg font-semibold mt-2">${property.price} / night</p>
-      <p className="text-yellow-500 mt-1">⭐ {property.rating}</p>
-      <p className="mt-4 text-gray-700">{property.description}</p>
-
-      {/* Reviews Section */}
-      <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
-        {reviews.length === 0 ? (
-          <p>No reviews yet.</p>
-        ) : (
-          <ul className="space-y-4">
-            {reviews.map((review) => (
-              <li key={review.id} className="border p-4 rounded-lg shadow-sm">
-                <p className="font-semibold">{review.author}</p>
-                <p className="text-yellow-500">⭐ {review.rating}</p>
-                <p className="mt-1">{review.comment}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  )
+  res.setHeader("Allow", ["GET"]);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
 }
-
-export default PropertyDetailPage
