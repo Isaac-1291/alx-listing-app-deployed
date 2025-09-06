@@ -1,6 +1,11 @@
 // API Configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"
+import axios from "axios";
+import { API_BASE_URL } from "../config";   // path may differ
 
+export async function fetchProperties() {
+  const response = await axios.get(`${API_BASE_URL}/properties`);
+  return response.data;
+}
 // UI Constants
 export const CURRENCY_SYMBOL = "$"
 export const DEFAULT_CURRENCY = "USD"
